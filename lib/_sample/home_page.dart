@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_local_notifications_sample/_sample/appbar_widget.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications_sample/_sample/_component/appbar_widget.dart';
+import 'package:flutter_local_notifications_sample/_sample/awesome_notifications/awesome_push_page.dart';
+import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,13 +13,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final FlutterLocalNotificationsPlugin _local =
-      FlutterLocalNotificationsPlugin();
   @override
   void initState() {
     super.initState();
     _permissionWithNotification();
-    _initialization();
   }
 
   void _permissionWithNotification() async {
@@ -27,61 +26,50 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _initialization() async {
-    AndroidInitializationSettings android =
-        const AndroidInitializationSettings("@mipmap/ic_launcher");
-    DarwinInitializationSettings ios = const DarwinInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-    InitializationSettings settings =
-        InitializationSettings(android: android, iOS: ios);
-    await _local.initialize(settings);
-  }
-
-  Future<void> _show() async {
-    NotificationDetails details = const NotificationDetails(
-      iOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        badgeNumber: 1,
-      ),
-      android: AndroidNotificationDetails(
-        "show_test",
-        "show_test",
-        channelDescription: "Test Local notications",
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-    );
-    await _local.show(
-      0,
-      "타이틀이 보여지는 영역입니다.",
-      "컨텐츠 내용이 보여지는 영역입니다.\ntest show()",
-      details,
-      payload: "tyger://",
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(26, 26, 26, 1),
       appBar: const AppbarWidget(
         title: "Local Notifications",
       ),
       body: Column(
         children: [
-          GestureDetector(
-            onTap: () async => _show(),
-            child: Container(
-              width: 100,
-              height: 100,
-              color: Colors.red,
-            ),
-          ),
+          _button("flutter_local_notifications", const LocalPushPage()),
+          _button("awesome_notifications", const AwesomePushPage()),
         ],
+      ),
+    );
+  }
+
+  GestureDetector _button(String title, Widget widget) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => widget));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(top: 16, bottom: 8, left: 20, right: 20),
+        width: MediaQuery.of(context).size.width,
+        height: 62,
+        color: Colors.transparent,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 20,
+            )
+          ],
+        ),
       ),
     );
   }

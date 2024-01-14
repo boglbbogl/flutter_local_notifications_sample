@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppbarWidget extends StatelessWidget implements PreferredSize {
   final String title;
+  final bool isLeading;
   const AppbarWidget({
     super.key,
     required this.title,
+    this.isLeading = false,
   });
 
   @override
@@ -26,6 +29,18 @@ class AppbarWidget extends StatelessWidget implements PreferredSize {
           color: Colors.white,
         ),
       ),
+      leading: isLeading
+          ? GestureDetector(
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                Navigator.of(context).pop();
+              },
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
+            )
+          : null,
     );
   }
 }
