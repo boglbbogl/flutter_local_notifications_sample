@@ -53,10 +53,13 @@ class _HomePageState extends State<HomePage> {
                   presentBadge: true,
                   presentSound: true,
                 ),
-                android: AndroidNotificationDetails("2", "test",
-                    importance: Importance.max),
+                android: AndroidNotificationDetails(
+                  "2",
+                  "test",
+                  importance: Importance.high,
+                ),
               );
-              await _local.show(2, "title", "body", details, payload: "dsfdsf");
+              await _local.show(0, "title", "body", details, payload: "dsfdsf");
             },
             child: Container(
               width: 100,
