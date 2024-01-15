@@ -1,10 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/appbar_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/content_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/title_widget.dart';
+import 'package:flutter_local_notifications_sample/_sample/content_type.dart';
 
 class LocalPushPage extends StatefulWidget {
   const LocalPushPage({super.key});
@@ -71,24 +71,29 @@ class _LocalPushPageState extends State<LocalPushPage> {
     await _local.initialize(settings);
   }
 
-  Future<void> _show(String title, String body) async {
-    NotificationDetails details = const NotificationDetails(
-      iOS: DarwinNotificationDetails(
+  Future<void> _show({
+    required PushType type,
+    required String title,
+    required String body,
+  }) async {
+    NotificationDetails details = NotificationDetails(
+      iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
         badgeNumber: 1,
       ),
       android: AndroidNotificationDetails(
-        "show_test",
-        "show_test",
-        channelDescription: "Test Local notications",
+        type.channelId,
+        type.channelName,
+        channelDescription: type.channelDescription,
         importance: Importance.max,
         priority: Priority.high,
       ),
     );
+    // if(oneTime.value )
     await _local.show(
-      0,
+      type.id,
       title,
       body,
       details,
@@ -121,8 +126,11 @@ class _LocalPushPageState extends State<LocalPushPage> {
                               () => _onChanged(type: 0, isAdd: false)),
                           _button(Icons.add, () => _onChanged(type: 0)),
                         ],
-                        onTap: (String title, String body) =>
-                            _show(title, body),
+                        onTap: (String title, String body) => _show(
+                          type: PushType.one,
+                          title: title,
+                          body: body,
+                        ),
                       );
                     }),
               ],

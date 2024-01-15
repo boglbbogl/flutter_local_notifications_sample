@@ -1,4 +1,4 @@
-enum ContentType {
+enum PushType {
   one(
     id: 0,
     channelId: "onlyOne",
@@ -29,7 +29,7 @@ enum ContentType {
   final String channelName;
   final String channelDescription;
 
-  const ContentType({
+  const PushType({
     required this.id,
     required this.channelId,
     required this.channelName,
