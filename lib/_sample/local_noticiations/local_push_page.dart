@@ -107,6 +107,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         RepeatInterval.everyMinute,
         details,
         payload: type.deeplink,
+        androidScheduleMode: AndroidScheduleMode.alarmClock,
       );
     }
   }
