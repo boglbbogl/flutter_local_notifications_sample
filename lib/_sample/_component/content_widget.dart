@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/setting_widget.dart';
+import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
 class ContentWidget extends StatelessWidget {
+  final PushType type;
   final String content;
   final List<Widget> children;
   final Function(String, String) onTap;
   const ContentWidget({
     super.key,
+    required this.type,
     this.content = "",
     required this.children,
     required this.onTap,
@@ -42,7 +45,10 @@ class ContentWidget extends StatelessWidget {
                     HapticFeedback.mediumImpact();
                     showModalBottomSheet(
                       context: context,
-                      builder: (context) => SettingWidget(onTap: onTap),
+                      builder: (context) => SettingWidget(
+                        onTap: onTap,
+                        type: type,
+                      ),
                       isScrollControlled: true,
                     );
                   },

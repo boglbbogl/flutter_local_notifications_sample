@@ -89,10 +89,11 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required PushType type,
     required String title,
     required String body,
-    required tz.TZDateTime schedule,
+    tz.TZDateTime? date,
     DateTimeComponents? dateTimeComponents,
   }) async {
     NotificationDetails details = _setDetails(type);
+    tz.TZDateTime schedule = date ?? tz.TZDateTime.now(tz.local);
     await _local.zonedSchedule(
       type.id,
       title,
@@ -132,9 +133,14 @@ class _LocalPushPageState extends State<LocalPushPage> {
       await _local.show(type.id, title, body, details, payload: type.deeplink);
     } else {
       tz.TZDateTime schedule =
-          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+          tz.TZDateTime.now(tz.local).add(Duration(minutes: oneTime.value));
       await _zonedSchedule(
-          type: type, title: title, body: body, schedule: schedule);
+        type: type,
+        title: title,
+        body: body,
+        date: schedule,
+        dateTimeComponents: DateTimeComponents.dateAndTime,
+      );
     }
   }
 
@@ -157,6 +163,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                     valueListenable: oneTime,
                     builder: (context, value, child) {
                       return ContentWidget(
+                        type: PushType.one,
                         content: value == 0 ? "show" : "$value minute",
                         children: [
                           _button(Icons.remove, () => _onChanged(isAdd: false)),
@@ -178,6 +185,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                     valueListenable: intervalPeriod,
                     builder: (context, value, child) {
                       return ContentWidget(
+                        type: PushType.period,
                         content: value.name,
                         children: [
                           _bigButton(
@@ -191,6 +199,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                     valueListenable: intervalDay,
                     builder: (context, value, child) {
                       return ContentWidget(
+                        type: PushType.daily,
                         content:
                             "${value.hour.toString().padLeft(2, "0")} : ${value.minute.toString().padLeft(2, "0")}",
                         children: [
@@ -201,13 +210,19 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             _onChangedWithDay(date);
                           })
                         ],
-                        onTap: (String title, String body) => null,
+                        onTap: (String title, String body) => _zonedSchedule(
+                          type: PushType.daily,
+                          title: title,
+                          body: body,
+                          dateTimeComponents: DateTimeComponents.time,
+                        ),
                       );
                     }),
                 ValueListenableBuilder<int>(
                     valueListenable: intervalWeek,
                     builder: (context, value, child) {
                       return ContentWidget(
+                        type: PushType.weekly,
                         children: [
                           ...List.generate(
                             weeks.length,
@@ -219,6 +234,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
                               child: Container(
                                 width: 28,
                                 height: 28,
+                                margin: EdgeInsets.only(
+                                    right: index == weeks.length - 1 ? 4 : 0),
                                 decoration: BoxDecoration(
                                     color: index == value ? Colors.amber : null,
                                     border: Border.all(
@@ -243,7 +260,13 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             ),
                           ),
                         ],
-                        onTap: (String title, String body) => null,
+                        onTap: (String title, String body) => _zonedSchedule(
+                          type: PushType.weekly,
+                          title: title,
+                          body: body,
+                          dateTimeComponents:
+                              DateTimeComponents.dayOfWeekAndTime,
+                        ),
                       );
                     }),
               ],

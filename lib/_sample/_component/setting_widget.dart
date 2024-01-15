@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
-class SettingWidget extends StatelessWidget {
-  final TextEditingController title =
-      TextEditingController(text: "Input title word.");
-  final TextEditingController body =
-      TextEditingController(text: "Input content word.");
+class SettingWidget extends StatefulWidget {
+  final PushType type;
   final Function(String, String) onTap;
-  SettingWidget({
+  const SettingWidget({
     super.key,
+    required this.type,
     required this.onTap,
   });
+
+  @override
+  State<SettingWidget> createState() => _SettingWidgetState();
+}
+
+class _SettingWidgetState extends State<SettingWidget> {
+  late TextEditingController title;
+
+  late TextEditingController body;
+
+  @override
+  void initState() {
+    super.initState();
+    title = TextEditingController(text: widget.type.title);
+    body = TextEditingController(text: widget.type.body);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +55,7 @@ class SettingWidget extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.mediumImpact();
-                        onTap(title.text, body.text);
+                        widget.onTap(title.text, body.text);
                         Navigator.of(context).pop();
                       },
                       child: const Text(
