@@ -21,15 +21,25 @@ class _LocalPushPageState extends State<LocalPushPage> {
   final List<String> weeks = ["M", "T", "W", "T", "F", "S", "S"];
 
   ValueNotifier<int> oneTime = ValueNotifier(0);
-  ValueNotifier<int> intervalTime = ValueNotifier(1);
+  ValueNotifier<RepeatInterval> intervalPeriod =
+      ValueNotifier(RepeatInterval.everyMinute);
   ValueNotifier<TimeOfDay> intervalDay = ValueNotifier(TimeOfDay.now());
   ValueNotifier<int> intervalWeek = ValueNotifier(0);
 
   @override
   void initState() {
     super.initState();
+    tz.initializeTimeZones();
     _initialization();
   }
+
+  void _onChangedWithTime() =>
+      intervalPeriod.value = switch (intervalPeriod.value) {
+        RepeatInterval.everyMinute => RepeatInterval.hourly,
+        RepeatInterval.hourly => RepeatInterval.daily,
+        RepeatInterval.daily => RepeatInterval.weekly,
+        RepeatInterval.weekly => RepeatInterval.everyMinute,
+      };
 
   void _onChangedWithDay(TimeOfDay? date) =>
       intervalDay.value = (date ?? intervalDay.value);
@@ -37,26 +47,10 @@ class _LocalPushPageState extends State<LocalPushPage> {
   void _onChangedWithWeek(int index) => intervalWeek.value = index;
 
   void _onChanged({
-    required int type,
     bool isAdd = true,
   }) {
-    switch (type) {
-      case 0:
-        if (oneTime.value == 0 && !isAdd) {
-          break;
-        } else {
-          oneTime.value = oneTime.value + (isAdd ? 1 : -1);
-        }
-        break;
-      case 1:
-        if (intervalTime.value == 1 && !isAdd) {
-          break;
-        } else {
-          intervalTime.value = intervalTime.value + (isAdd ? 1 : -1);
-        }
-        break;
-      default:
-        break;
+    if (!(oneTime.value == 0 && !isAdd)) {
+      oneTime.value = oneTime.value + (isAdd ? 1 : -1);
     }
   }
 
@@ -73,12 +67,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
     await _local.initialize(settings);
   }
 
-  Future<void> _show({
-    required PushType type,
-    required String title,
-    required String body,
-  }) async {
-    NotificationDetails details = NotificationDetails(
+  NotificationDetails _setDetails(PushType type) {
+    return NotificationDetails(
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
@@ -93,22 +83,55 @@ class _LocalPushPageState extends State<LocalPushPage> {
         priority: Priority.high,
       ),
     );
-    // if(oneTime.value )
-    tz.initializeTimeZones();
-    tz.TZDateTime schedule =
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
+  }
+
+  Future<void> _zonedSchedule({
+    required PushType type,
+    required String title,
+    required String body,
+    required tz.TZDateTime schedule,
+  }) async {
+    NotificationDetails details = _setDetails(type);
+    await _local.zonedSchedule(
+      type.id,
+      title,
+      body,
+      schedule,
+      details,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  Future<void> _periodicallyShow({
+    required PushType type,
+    required String title,
+    required String body,
+  }) async {
+    NotificationDetails details = _setDetails(type);
+    await _local.periodicallyShow(
+      type.id,
+      title,
+      body,
+      intervalPeriod.value,
+      details,
+      payload: type.deeplink,
+    );
+  }
+
+  Future<void> _show({
+    required PushType type,
+    required String title,
+    required String body,
+  }) async {
+    NotificationDetails details = _setDetails(type);
+
     if (oneTime.value == 0) {
       await _local.show(type.id, title, body, details, payload: type.deeplink);
     } else {
-      await _local.periodicallyShow(
-        type.id,
-        title,
-        body,
-        RepeatInterval.everyMinute,
-        details,
-        payload: type.deeplink,
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
-      );
+      tz.TZDateTime schedule =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
+      _zonedSchedule(type: type, title: title, body: body, schedule: schedule);
     }
   }
 
@@ -133,9 +156,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
                       return ContentWidget(
                         content: value == 0 ? "show" : "$value minute",
                         children: [
-                          _button(Icons.remove,
-                              () => _onChanged(type: 0, isAdd: false)),
-                          _button(Icons.add, () => _onChanged(type: 0)),
+                          _button(Icons.remove, () => _onChanged(isAdd: false)),
+                          _button(Icons.add, () => _onChanged()),
                         ],
                         onTap: (String title, String body) => _show(
                           type: PushType.one,
@@ -149,17 +171,17 @@ class _LocalPushPageState extends State<LocalPushPage> {
             TitleWidget(
               title: "Interval",
               children: [
-                ValueListenableBuilder<int>(
-                    valueListenable: intervalTime,
+                ValueListenableBuilder<RepeatInterval>(
+                    valueListenable: intervalPeriod,
                     builder: (context, value, child) {
                       return ContentWidget(
-                        content: "$value minute",
+                        content: value.name,
                         children: [
-                          _button(Icons.remove,
-                              () => _onChanged(type: 1, isAdd: false)),
-                          _button(Icons.add, () => _onChanged(type: 1)),
+                          _bigButton(
+                              Icons.refresh, () async => _onChangedWithTime())
                         ],
-                        onTap: (String title, String body) => null,
+                        onTap: (String title, String body) => _periodicallyShow(
+                            type: PushType.period, title: title, body: body),
                       );
                     }),
                 ValueListenableBuilder<TimeOfDay>(
@@ -169,28 +191,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                         content:
                             "${value.hour.toString().padLeft(2, "0")} : ${value.minute.toString().padLeft(2, "0")}",
                         children: [
-                          GestureDetector(
-                            onTap: () async {
-                              HapticFeedback.mediumImpact();
-                              final TimeOfDay? date = await showTimePicker(
-                                  context: context, initialTime: value);
-                              _onChangedWithDay(date);
-                            },
-                            child: Container(
-                              height: 32,
-                              margin: const EdgeInsets.only(right: 4),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 22),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: const Color.fromRGBO(66, 66, 66, 1),
-                              ),
-                              child: const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          _bigButton(Icons.keyboard_arrow_down_rounded,
+                              () async {
+                            final TimeOfDay? date = await showTimePicker(
+                                context: context, initialTime: value);
+                            _onChangedWithDay(date);
+                          })
                         ],
                         onTap: (String title, String body) => null,
                       );
@@ -208,8 +214,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
                                 _onChangedWithWeek(index);
                               },
                               child: Container(
-                                width: 32,
-                                height: 32,
+                                width: 28,
+                                height: 28,
                                 decoration: BoxDecoration(
                                     color: index == value ? Colors.amber : null,
                                     border: Border.all(
@@ -245,6 +251,31 @@ class _LocalPushPageState extends State<LocalPushPage> {
     );
   }
 
+  GestureDetector _bigButton(
+    IconData icons,
+    Function() onTap,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.mediumImpact();
+        onTap();
+      },
+      child: Container(
+        height: 34,
+        margin: const EdgeInsets.only(right: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: const Color.fromRGBO(66, 66, 66, 1),
+        ),
+        child: Icon(
+          icons,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   GestureDetector _button(
     IconData icons,
     Function() onTap,
@@ -257,7 +288,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
       child: Container(
         height: 32,
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           color: const Color.fromRGBO(66, 66, 66, 1),
@@ -265,7 +296,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         child: Icon(
           icons,
           color: Colors.white,
-          size: 22,
+          size: 20,
         ),
       ),
     );

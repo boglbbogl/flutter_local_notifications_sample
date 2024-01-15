@@ -6,11 +6,11 @@ enum PushType {
     channelDescription: "Test notifictions with only one",
     deeplink: "tyger://",
   ),
-  minute(
+  period(
     id: 1,
-    channelId: "intervalTime",
-    channelName: "intervalTime",
-    channelDescription: "Test notifictions with time interval",
+    channelId: "intervalPeriod",
+    channelName: "intervalPeriod",
+    channelDescription: "Test notifictions with time interval period",
     deeplink: "tyger://",
   ),
   daily(
