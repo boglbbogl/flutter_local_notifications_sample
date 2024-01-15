@@ -90,6 +90,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required String title,
     required String body,
     required tz.TZDateTime schedule,
+    DateTimeComponents? dateTimeComponents,
   }) async {
     NotificationDetails details = _setDetails(type);
     await _local.zonedSchedule(
@@ -100,6 +101,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
       details,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: dateTimeComponents,
     );
   }
 
@@ -130,8 +132,9 @@ class _LocalPushPageState extends State<LocalPushPage> {
       await _local.show(type.id, title, body, details, payload: type.deeplink);
     } else {
       tz.TZDateTime schedule =
-          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
-      _zonedSchedule(type: type, title: title, body: body, schedule: schedule);
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+      await _zonedSchedule(
+          type: type, title: title, body: body, schedule: schedule);
     }
   }
 
