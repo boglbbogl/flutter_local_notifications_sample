@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/appbar_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/content_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/title_widget.dart';
-import 'package:flutter_local_notifications_sample/_sample/content_type.dart';
+import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
 class LocalPushPage extends StatefulWidget {
   const LocalPushPage({super.key});
@@ -92,13 +92,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
       ),
     );
     // if(oneTime.value )
-    await _local.show(
-      type.id,
-      title,
-      body,
-      details,
-      payload: "tyger://",
-    );
+    await _local.show(type.id, title, body, details, payload: "tyger://");
   }
 
   @override
