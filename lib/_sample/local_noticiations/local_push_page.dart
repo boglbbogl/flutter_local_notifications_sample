@@ -5,6 +5,8 @@ import 'package:flutter_local_notifications_sample/_sample/_component/appbar_wid
 import 'package:flutter_local_notifications_sample/_sample/_component/content_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/title_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class LocalPushPage extends StatefulWidget {
   const LocalPushPage({super.key});
@@ -92,7 +94,21 @@ class _LocalPushPageState extends State<LocalPushPage> {
       ),
     );
     // if(oneTime.value )
-    await _local.show(type.id, title, body, details, payload: "tyger://");
+    tz.initializeTimeZones();
+    tz.TZDateTime schedule =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
+    if (oneTime.value == 0) {
+      await _local.show(type.id, title, body, details, payload: type.deeplink);
+    } else {
+      await _local.periodicallyShow(
+        type.id,
+        title,
+        body,
+        RepeatInterval.everyMinute,
+        details,
+        payload: type.deeplink,
+      );
+    }
   }
 
   @override
