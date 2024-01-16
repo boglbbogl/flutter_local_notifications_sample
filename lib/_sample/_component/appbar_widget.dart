@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 class AppbarWidget extends StatelessWidget implements PreferredSize {
   final String title;
   final bool isLeading;
+  final Function()? onAction;
   const AppbarWidget({
     super.key,
     required this.title,
     this.isLeading = false,
+    this.onAction,
   });
 
   @override
@@ -40,6 +42,23 @@ class AppbarWidget extends StatelessWidget implements PreferredSize {
                 color: Colors.white,
               ),
             )
+          : null,
+      actions: onAction != null
+          ? [
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onAction!();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Icon(
+                    Icons.list,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            ]
           : null,
     );
   }

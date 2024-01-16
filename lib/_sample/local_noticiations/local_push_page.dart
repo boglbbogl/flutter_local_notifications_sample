@@ -177,9 +177,19 @@ class _LocalPushPageState extends State<LocalPushPage> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(26, 26, 26, 1),
-        appBar: const AppbarWidget(
+        appBar: AppbarWidget(
           title: "",
           isLeading: true,
+          onAction: () async {
+            List<PendingNotificationRequest> _notifications =
+                await _local.pendingNotificationRequests();
+            for (final e in _notifications) {
+              print(e.title);
+              print(e.body);
+              print(e.payload);
+              print(e.id);
+            }
+          },
         ),
         body: ListView(
           children: [
