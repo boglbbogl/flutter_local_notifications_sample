@@ -7,7 +7,7 @@ class ContentWidget extends StatelessWidget {
   final PushType type;
   final String content;
   final List<Widget> children;
-  final Function(String, String) onTap;
+  final Function(String?, String?) onTap;
   const ContentWidget({
     super.key,
     required this.type,

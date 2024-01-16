@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
 class SettingWidget extends StatefulWidget {
   final PushType type;
-  final Function(String, String) onTap;
+  final Function(String?, String?) onTap;
   const SettingWidget({
     super.key,
     required this.type,
@@ -23,8 +23,8 @@ class _SettingWidgetState extends State<SettingWidget> {
   @override
   void initState() {
     super.initState();
-    title = TextEditingController(text: widget.type.title);
-    body = TextEditingController(text: widget.type.body);
+    title = TextEditingController();
+    body = TextEditingController();
   }
 
   @override
@@ -55,7 +55,10 @@ class _SettingWidgetState extends State<SettingWidget> {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.mediumImpact();
-                        widget.onTap(title.text, body.text);
+                        widget.onTap(
+                          title.text.trim().isNotEmpty ? title.text : null,
+                          body.text.trim().isNotEmpty ? body.text : null,
+                        );
                         Navigator.of(context).pop();
                       },
                       child: const Text(
