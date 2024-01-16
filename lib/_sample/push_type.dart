@@ -5,8 +5,9 @@ enum PushType {
     channelName: "onlyOne",
     channelDescription: "Test notifictions with only one",
     deeplink: "tyger://",
-    title: "",
-    body: "",
+    title: "🌈 [TEST] Noticiaionts with only one",
+    body:
+        "Noticiations send test with flutter_local_notifications ✨ \n(setting > notification)",
   ),
   period(
     id: 1,
@@ -14,8 +15,9 @@ enum PushType {
     channelName: "intervalPeriod",
     channelDescription: "Test notifictions with time interval period",
     deeplink: "tyger://",
-    title: "",
-    body: "",
+    title: "🔥 [TEST] Noticiaionts with only period",
+    body:
+        "Noticiations send test with flutter_local_notifications ✨ \n(setting > notification)",
   ),
   daily(
     id: 2,
@@ -23,8 +25,9 @@ enum PushType {
     channelName: "daily",
     channelDescription: "Test notifictions with daily",
     deeplink: "tyger://",
-    title: "",
-    body: "",
+    title: "💧 [TEST] Noticiaionts with only daily",
+    body:
+        "Noticiations send test with flutter_local_notifications ✨ \n(setting > notification)",
   ),
   weekly(
     id: 3,
@@ -32,8 +35,19 @@ enum PushType {
     channelName: "weekly",
     channelDescription: "Test notifictions with weekly",
     deeplink: "tyger://",
-    title: "",
-    body: "",
+    title: "💬 [TEST] Noticiaionts with only weekly",
+    body:
+        "Noticiations send test with flutter_local_notifications ✨ \n(setting > notification)",
+  ),
+  montly(
+    id: 4,
+    channelId: "montly",
+    channelName: "montly",
+    channelDescription: "Test noticiations with montly",
+    deeplink: "tyger://",
+    title: "📅 [TEST] Noticiaionts with only montly",
+    body:
+        "Noticiations send test with flutter_local_notifications ✨ \n(setting > notification)",
   );
 
   final int id;

@@ -30,6 +30,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
   void initState() {
     super.initState();
     tz.initializeTimeZones();
+    // tz.setLocalLocation(tz.getLocation("Asia/Seoul"));
     _initialization();
   }
 
@@ -142,6 +143,32 @@ class _LocalPushPageState extends State<LocalPushPage> {
         dateTimeComponents: DateTimeComponents.dateAndTime,
       );
     }
+    _setDate(DateTime.now());
+  }
+
+  tz.TZDateTime _setDate(DateTime date) {
+    Duration offSet = DateTime.now().timeZoneOffset;
+    DateTime local = date.add(-offSet);
+    return tz.TZDateTime(tz.local, local.year, local.month, local.day,
+        local.hour, local.minute, local.second);
+  }
+
+  tz.TZDateTime _setWeekDate() {
+    Duration offSet = DateTime.now().timeZoneOffset;
+    DateTime local = DateTime.now().add(-offSet);
+    DateTime start = local.subtract(Duration(days: local.weekday - 0));
+    DateTime weekDate = switch (intervalWeek.value) {
+      0 => start.add(const Duration(days: 1)),
+      1 => start.add(const Duration(days: 2)),
+      2 => start.add(const Duration(days: 3)),
+      3 => start.add(const Duration(days: 4)),
+      4 => start.add(const Duration(days: 5)),
+      5 => start.add(const Duration(days: 6)),
+      6 => start.add(const Duration(days: 0)),
+      _ => start,
+    };
+    return tz.TZDateTime(tz.local, weekDate.year, weekDate.month, weekDate.day,
+        weekDate.hour, weekDate.minute, weekDate.second);
   }
 
   @override
@@ -214,6 +241,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           type: PushType.daily,
                           title: title,
                           body: body,
+                          date: _setDate(DateTime(
+                              DateTime.now().year,
+                              DateTime.now().month,
+                              DateTime.now().day,
+                              value.hour,
+                              value.minute)),
                           dateTimeComponents: DateTimeComponents.time,
                         ),
                       );
@@ -264,11 +297,24 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           type: PushType.weekly,
                           title: title,
                           body: body,
+                          date: _setWeekDate(),
                           dateTimeComponents:
                               DateTimeComponents.dayOfWeekAndTime,
                         ),
                       );
                     }),
+                ContentWidget(
+                  type: PushType.montly,
+                  content: "Montly",
+                  children: const [],
+                  onTap: (String title, String body) => _zonedSchedule(
+                    type: PushType.montly,
+                    title: title,
+                    body: body,
+                    date: _setDate(DateTime.now()),
+                    dateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
+                  ),
+                ),
               ],
             ),
           ],
