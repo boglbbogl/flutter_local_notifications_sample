@@ -21,6 +21,7 @@ class AppbarWidget extends StatelessWidget implements PreferredSize {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      scrolledUnderElevation: 0,
       backgroundColor: const Color.fromRGBO(26, 26, 26, 1),
       centerTitle: false,
       title: Text(

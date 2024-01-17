@@ -93,10 +93,11 @@ class _LocalPushPageState extends State<LocalPushPage> {
     DateTimeComponents? dateTimeComponents,
     required String? title,
     required String? body,
+    required String link,
   }) async {
     NotificationDetails details = _setDetails(type);
     tz.TZDateTime schedule = date ?? tz.TZDateTime.now(tz.local);
-    PushModel data = await _setPayload(type, title, body);
+    PushModel data = await _setPayload(type, title, body, link);
     await _local.zonedSchedule(
       data.id,
       data.title,
@@ -113,9 +114,10 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required PushType type,
     required String? title,
     required String? body,
+    required String link,
   }) async {
     NotificationDetails details = _setDetails(type);
-    PushModel data = await _setPayload(type, title, body);
+    PushModel data = await _setPayload(type, title, body, link);
     await _local.periodicallyShow(
       data.id,
       data.title,
@@ -130,9 +132,10 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required PushType type,
     required String? title,
     required String? body,
+    required String link,
   }) async {
     NotificationDetails details = _setDetails(type);
-    PushModel data = await _setPayload(type, title, body);
+    PushModel data = await _setPayload(type, title, body, link);
     if (oneTime.value == 0) {
       await _local.show(data.id, data.title, data.body, details,
           payload: data.deeplink);
@@ -181,7 +184,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
   Future<PushModel> _setPayload(
     PushType type,
     String? inputTitle,
-    String? inputBody, {
+    String? inputBody,
+    String inputLink, {
     tz.TZDateTime? dateTime,
   }) async {
     List<PendingNotificationRequest> notifications =
@@ -227,7 +231,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
       title: inputTitle ?? title,
       body: inputBody ??
           "[TEST] flutter_local_notifications packages with Local Push\n(setting > noti)",
-      deeplink: "sample://",
+      deeplink: inputLink,
     );
     print(data);
     return data;
@@ -263,10 +267,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _button(Icons.remove, () => _onChanged(isAdd: false)),
                           _button(Icons.add, () => _onChanged()),
                         ],
-                        onTap: (String? title, String? body) => _show(
+                        onTap: (String? title, String? body, String link) =>
+                            _show(
                           type: PushType.one,
                           title: title,
                           body: body,
+                          link: link,
                         ),
                       );
                     }),
@@ -285,11 +291,13 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _bigButton(
                               Icons.refresh, () async => _onChangedWithTime())
                         ],
-                        onTap: (String? title, String? body) =>
+                        onTap: (String? title, String? body, String link) =>
                             _periodicallyShow(
-                                type: PushType.period,
-                                title: title,
-                                body: body),
+                          type: PushType.period,
+                          title: title,
+                          body: body,
+                          link: link,
+                        ),
                       );
                     }),
                 ValueListenableBuilder<TimeOfDay>(
@@ -307,10 +315,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             _onChangedWithDay(date);
                           })
                         ],
-                        onTap: (String? title, String? body) => _zonedSchedule(
+                        onTap: (String? title, String? body, String link) =>
+                            _zonedSchedule(
                           type: PushType.daily,
                           title: title,
                           body: body,
+                          link: link,
                           date: _setDate(DateTime(
                               DateTime.now().year,
                               DateTime.now().month,
@@ -363,10 +373,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             ),
                           ),
                         ],
-                        onTap: (String? title, String? body) => _zonedSchedule(
+                        onTap: (String? title, String? body, String link) =>
+                            _zonedSchedule(
                           type: PushType.weekly,
                           title: title,
                           body: body,
+                          link: link,
                           date: _setWeekDate(),
                           dateTimeComponents:
                               DateTimeComponents.dayOfWeekAndTime,
@@ -377,10 +389,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
                   type: PushType.montly,
                   content: "Montly",
                   children: const [],
-                  onTap: (String? title, String? body) => _zonedSchedule(
+                  onTap: (String? title, String? body, String link) =>
+                      _zonedSchedule(
                     type: PushType.montly,
                     title: title,
                     body: body,
+                    link: link,
                     date: _setDate(DateTime.now()),
                     dateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
                   ),

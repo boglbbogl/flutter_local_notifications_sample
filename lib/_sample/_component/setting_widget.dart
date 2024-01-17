@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
 class SettingWidget extends StatefulWidget {
   final PushType type;
-  final Function(String?, String?) onTap;
+  final Function(String?, String?, String) onTap;
   const SettingWidget({
     super.key,
     required this.type,
@@ -17,14 +17,15 @@ class SettingWidget extends StatefulWidget {
 
 class _SettingWidgetState extends State<SettingWidget> {
   late TextEditingController title;
-
   late TextEditingController body;
+  late TextEditingController deeplink;
 
   @override
   void initState() {
     super.initState();
     title = TextEditingController();
     body = TextEditingController();
+    deeplink = TextEditingController();
   }
 
   @override
@@ -58,6 +59,9 @@ class _SettingWidgetState extends State<SettingWidget> {
                         widget.onTap(
                           title.text.trim().isNotEmpty ? title.text : null,
                           body.text.trim().isNotEmpty ? body.text : null,
+                          deeplink.text.trim().isNotEmpty
+                              ? deeplink.text.trim()
+                              : "tyger://",
                         );
                         Navigator.of(context).pop();
                       },
@@ -73,8 +77,9 @@ class _SettingWidgetState extends State<SettingWidget> {
                 ),
               ),
             ),
-            _form("title", title),
-            _form("body", body),
+            _form("Title", title),
+            _form("Body", body),
+            _form("Deeplink", body),
           ],
         ),
       ),
