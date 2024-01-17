@@ -10,6 +10,11 @@ import 'package:flutter_local_notifications_sample/_sample/_component/title_widg
 import 'package:flutter_local_notifications_sample/_sample/push_model.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  print('object');
+}
+
 class LocalPushPage extends StatefulWidget {
   const LocalPushPage({super.key});
 
@@ -66,7 +71,14 @@ class _LocalPushPageState extends State<LocalPushPage> {
     );
     InitializationSettings settings =
         InitializationSettings(android: android, iOS: ios);
-    await _local.initialize(settings);
+    await _local.initialize(
+      settings,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+      onDidReceiveNotificationResponse: (NotificationResponse details) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("NotificationResponse")));
+      },
+    );
   }
 
   NotificationDetails _setDetails(PushType type) {
