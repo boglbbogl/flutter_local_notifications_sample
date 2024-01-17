@@ -10,11 +10,6 @@ import 'package:flutter_local_notifications_sample/_sample/_component/title_widg
 import 'package:flutter_local_notifications_sample/_sample/push_model.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
-  print('object');
-}
-
 class LocalPushPage extends StatefulWidget {
   const LocalPushPage({super.key});
 
@@ -38,6 +33,19 @@ class _LocalPushPageState extends State<LocalPushPage> {
     super.initState();
     tz.initializeTimeZones();
     _initialization();
+    _listenerWithTerminated();
+  }
+
+  void _listenerWithTerminated() async {
+    NotificationAppLaunchDetails? details =
+        await _local.getNotificationAppLaunchDetails();
+    if (details != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("detail Not Null")));
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("detail Null")));
+    }
   }
 
   void _onChangedWithTime() =>
@@ -69,11 +77,11 @@ class _LocalPushPageState extends State<LocalPushPage> {
       requestBadgePermission: false,
       requestAlertPermission: false,
     );
+
     InitializationSettings settings =
         InitializationSettings(android: android, iOS: ios);
     await _local.initialize(
       settings,
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text("NotificationResponse")));
