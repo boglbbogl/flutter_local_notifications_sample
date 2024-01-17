@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/appbar_widget.dart';
+import 'package:flutter_local_notifications_sample/_sample/_component/snackbar_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/awesome_notifications/awesome_push_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_page.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,16 +15,62 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final FlutterLocalNotificationsPlugin local =
+      FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
     _permissionWithNotification();
+    _initWithLocalNotifications();
+    _listenerWithLocalNotifications();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
   }
 
   void _permissionWithNotification() async {
     if (await Permission.notification.isDenied &&
         !await Permission.notification.isPermanentlyDenied) {
       await [Permission.notification].request();
+    }
+  }
+
+  void _initWithLocalNotifications() async {
+    AndroidInitializationSettings android =
+        const AndroidInitializationSettings("@mipmap/ic_launcher");
+    DarwinInitializationSettings ios = const DarwinInitializationSettings(
+      requestSoundPermission: false,
+      requestBadgePermission: false,
+      requestAlertPermission: false,
+    );
+
+    InitializationSettings settings =
+        InitializationSettings(android: android, iOS: ios);
+    await local.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse details) {
+        if (details.payload != null) {
+          snackbarWidget(
+              context, "[Foreground / Background]", details.payload!);
+        }
+      },
+    );
+  }
+
+  void _listenerWithLocalNotifications() async {
+    NotificationAppLaunchDetails? details =
+        await local.getNotificationAppLaunchDetails();
+    if (details != null) {
+      if (details.notificationResponse != null) {
+        if (details.notificationResponse!.payload != null) {
+          if (!mounted) return;
+          snackbarWidget(
+              context, "[Terminate]", details.notificationResponse!.payload!);
+        }
+      }
     }
   }
 

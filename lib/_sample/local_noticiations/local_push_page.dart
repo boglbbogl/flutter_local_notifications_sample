@@ -32,20 +32,6 @@ class _LocalPushPageState extends State<LocalPushPage> {
   void initState() {
     super.initState();
     tz.initializeTimeZones();
-    _initialization();
-    _listenerWithTerminated();
-  }
-
-  void _listenerWithTerminated() async {
-    NotificationAppLaunchDetails? details =
-        await _local.getNotificationAppLaunchDetails();
-    if (details != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("detail Not Null")));
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("detail Null")));
-    }
   }
 
   void _onChangedWithTime() =>
@@ -67,26 +53,6 @@ class _LocalPushPageState extends State<LocalPushPage> {
     if (!(oneTime.value == 0 && !isAdd)) {
       oneTime.value = oneTime.value + (isAdd ? 1 : -1);
     }
-  }
-
-  void _initialization() async {
-    AndroidInitializationSettings android =
-        const AndroidInitializationSettings("@mipmap/ic_launcher");
-    DarwinInitializationSettings ios = const DarwinInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-
-    InitializationSettings settings =
-        InitializationSettings(android: android, iOS: ios);
-    await _local.initialize(
-      settings,
-      onDidReceiveNotificationResponse: (NotificationResponse details) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("NotificationResponse")));
-      },
-    );
   }
 
   NotificationDetails _setDetails(PushType type) {
@@ -113,7 +79,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
     DateTimeComponents? dateTimeComponents,
     required String? title,
     required String? body,
-    required String link,
+    required String? link,
   }) async {
     NotificationDetails details = _setDetails(type);
     tz.TZDateTime schedule = date ?? tz.TZDateTime.now(tz.local);
@@ -134,7 +100,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required PushType type,
     required String? title,
     required String? body,
-    required String link,
+    required String? link,
   }) async {
     NotificationDetails details = _setDetails(type);
     PushModel data = await _setPayload(type, title, body, link);
@@ -152,7 +118,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
     required PushType type,
     required String? title,
     required String? body,
-    required String link,
+    required String? link,
   }) async {
     NotificationDetails details = _setDetails(type);
     PushModel data = await _setPayload(type, title, body, link);
@@ -205,7 +171,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
     PushType type,
     String? inputTitle,
     String? inputBody,
-    String inputLink, {
+    String? inputLink, {
     tz.TZDateTime? dateTime,
   }) async {
     List<PendingNotificationRequest> notifications =
@@ -239,19 +205,27 @@ class _LocalPushPageState extends State<LocalPushPage> {
       };
     }
 
-    String title = switch (type) {
-      PushType.one => "🔥 [ONE][$date] $one",
-      PushType.period => "🪃 [PERIOD][$date] ${intervalPeriod.value.name}",
-      PushType.daily => "🌈 [DAILY] 매일 $date분 마다..",
-      PushType.weekly => "💥 [WEEKLY] 매주 $week $date분 마다..",
-      PushType.montly => "📅 [MONTLY] 매월 $date분 마다..",
-    };
     PushModel data = PushModel(
       id: id,
-      title: inputTitle ?? title,
+      title: inputTitle ??
+          switch (type) {
+            PushType.one => "🔥 [ONE][$date] $one",
+            PushType.period =>
+              "🪃 [PERIOD][$date] ${intervalPeriod.value.name}",
+            PushType.daily => "🌈 [DAILY] 매일 $date분 마다..",
+            PushType.weekly => "💥 [WEEKLY] 매주 $week $date분 마다..",
+            PushType.montly => "📅 [MONTLY] 매월 $date분 마다..",
+          },
       body: inputBody ??
           "[TEST] flutter_local_notifications packages with Local Push\n(setting > noti)",
-      deeplink: inputLink,
+      deeplink: inputLink ??
+          switch (type) {
+            PushType.one => "tyger://flutterLocalNotifications/one",
+            PushType.period => "tyger://flutterLocalNotifications/period",
+            PushType.daily => "tyger://flutterLocalNotifications/daily",
+            PushType.weekly => "tyger://flutterLocalNotifications/weekly",
+            PushType.montly => "tyger://flutterLocalNotifications/montly",
+          },
     );
     print(data);
     return data;
@@ -287,7 +261,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _button(Icons.remove, () => _onChanged(isAdd: false)),
                           _button(Icons.add, () => _onChanged()),
                         ],
-                        onTap: (String? title, String? body, String link) =>
+                        onTap: (String? title, String? body, String? link) =>
                             _show(
                           type: PushType.one,
                           title: title,
@@ -311,7 +285,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _bigButton(
                               Icons.refresh, () async => _onChangedWithTime())
                         ],
-                        onTap: (String? title, String? body, String link) =>
+                        onTap: (String? title, String? body, String? link) =>
                             _periodicallyShow(
                           type: PushType.period,
                           title: title,
@@ -335,7 +309,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             _onChangedWithDay(date);
                           })
                         ],
-                        onTap: (String? title, String? body, String link) =>
+                        onTap: (String? title, String? body, String? link) =>
                             _zonedSchedule(
                           type: PushType.daily,
                           title: title,
@@ -393,7 +367,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                             ),
                           ),
                         ],
-                        onTap: (String? title, String? body, String link) =>
+                        onTap: (String? title, String? body, String? link) =>
                             _zonedSchedule(
                           type: PushType.weekly,
                           title: title,
@@ -409,7 +383,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
                   type: PushType.montly,
                   content: "Montly",
                   children: const [],
-                  onTap: (String? title, String? body, String link) =>
+                  onTap: (String? title, String? body, String? link) =>
                       _zonedSchedule(
                     type: PushType.montly,
                     title: title,
