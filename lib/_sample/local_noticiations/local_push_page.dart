@@ -60,6 +60,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         presentBadge: true,
         presentSound: true,
         badgeNumber: 1,
+        attachments: [],
       ),
       android: AndroidNotificationDetails(
         type.channelId,
@@ -228,6 +229,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
             _ => "",
           },
     );
+
     print(data);
     return data;
   }

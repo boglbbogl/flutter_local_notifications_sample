@@ -16,9 +16,14 @@ class SendWidget extends StatefulWidget {
 }
 
 class _SendWidgetState extends State<SendWidget> {
+  final List<String> imageList = [];
+
   late TextEditingController title;
   late TextEditingController body;
   late TextEditingController deeplink;
+  late TextEditingController imageUrl;
+
+  ValueNotifier<int?> currentImage = ValueNotifier(null);
 
   @override
   void initState() {
@@ -80,6 +85,62 @@ class _SendWidgetState extends State<SendWidget> {
             _form("Title", title),
             _form("Body", body),
             _form("Deeplink", body),
+            _form("URL", body),
+            ValueListenableBuilder(
+                valueListenable: currentImage,
+                builder: (context, current, child) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    height: 100,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          ...List.generate(
+                            20,
+                            (index) => GestureDetector(
+                              onTap: () {
+                                HapticFeedback.mediumImpact();
+                                if (currentImage.value == index) {
+                                  currentImage.value = null;
+                                } else {
+                                  currentImage.value = index;
+                                }
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 4),
+                                width: MediaQuery.of(context).size.width / 5,
+                                height: MediaQuery.of(context).size.width / 5,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: const Color.fromRGBO(235, 235, 235, 1),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    if (current == index) ...[
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: Icon(
+                                          Icons.check,
+                                          size: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              7,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
           ],
         ),
       ),
