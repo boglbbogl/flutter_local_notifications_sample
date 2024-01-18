@@ -16,7 +16,21 @@ class SendWidget extends StatefulWidget {
 }
 
 class _SendWidgetState extends State<SendWidget> {
-  final List<String> imageList = [];
+  final List<String> imageList = [
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/7718d102-ce66-400c-96a7-1aa125fe27a2",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/ab2f6cc0-b0cd-4f8d-aab5-478708b95de7",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/cf765bd8-98a1-4a0b-8350-0503ce80973d",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/8e9b93ba-5da4-4515-a328-0c304137028e",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/7728d053-9cbd-4f9f-ac57-b7ab4a2f0870",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/eb888572-32d7-4b7e-aff5-4a233292c45d",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/15162f40-f11b-427c-ac05-63fe1cba716a",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/bc1c33b4-6170-4ede-80ba-f083c1a13581",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/2b748179-f07b-4da2-9363-8d57910970c4",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/435e1d71-9c7d-4cc3-ae60-c078fa4026c4",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/c6babc0d-0cbe-47b7-8da6-99c06f476276",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/a64e3ead-0e95-4a37-83ef-7b493a4157c9",
+    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/736f6441-6772-49a2-8e3e-35a26a5f641e",
+  ];
 
   late TextEditingController title;
   late TextEditingController body;
@@ -91,14 +105,14 @@ class _SendWidgetState extends State<SendWidget> {
                 builder: (context, current, child) {
                   return Container(
                     margin: const EdgeInsets.only(top: 12),
-                    height: 100,
+                    height: (MediaQuery.of(context).size.width / 5),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           const SizedBox(width: 12),
                           ...List.generate(
-                            20,
+                            imageList.length,
                             (index) => GestureDetector(
                               onTap: () {
                                 HapticFeedback.mediumImpact();
@@ -116,21 +130,33 @@ class _SendWidgetState extends State<SendWidget> {
                                   borderRadius: BorderRadius.circular(8),
                                   color: const Color.fromRGBO(235, 235, 235, 1),
                                 ),
-                                child: Stack(
-                                  children: [
-                                    if (current == index) ...[
-                                      Container(
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.check,
-                                          size: MediaQuery.of(context)
-                                                  .size
-                                                  .width /
-                                              7,
-                                        ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Stack(
+                                    children: [
+                                      Image.network(
+                                        imageList[index],
+                                        width:
+                                            MediaQuery.of(context).size.width /
+                                                5,
+                                        height:
+                                            MediaQuery.of(context).size.width /
+                                                5,
+                                        fit: BoxFit.cover,
                                       ),
+                                      if (current != null) ...[
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: current != index
+                                                ? Colors.white.withOpacity(0.8)
+                                                : null,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
