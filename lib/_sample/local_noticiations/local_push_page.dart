@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_list_page.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -31,7 +30,6 @@ class _LocalPushPageState extends State<LocalPushPage> {
   @override
   void initState() {
     super.initState();
-    tz.initializeTimeZones();
   }
 
   void _onChangedWithTime() =>
@@ -190,6 +188,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
       PushType.weekly ||
       PushType.montly =>
         dateTime == null ? _dateToString(now) : _dateToString(dateTime),
+      _ => "",
     };
     String week = "";
     if (type == PushType.weekly) {
@@ -215,6 +214,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
             PushType.daily => "🌈 [DAILY] 매일 $date분 마다..",
             PushType.weekly => "💥 [WEEKLY] 매주 $week $date분 마다..",
             PushType.montly => "📅 [MONTLY] 매월 $date분 마다..",
+            _ => "",
           },
       body: inputBody ??
           "[TEST] flutter_local_notifications packages with Local Push\n(setting > noti)",
@@ -225,6 +225,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
             PushType.daily => "tyger://flutterLocalNotifications/daily",
             PushType.weekly => "tyger://flutterLocalNotifications/weekly",
             PushType.montly => "tyger://flutterLocalNotifications/montly",
+            _ => "",
           },
     );
     print(data);

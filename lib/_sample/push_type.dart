@@ -23,6 +23,11 @@ enum PushType {
     channelId: "montly",
     channelName: "montly",
     channelDescription: "Test noticiations with montly",
+  ),
+  afterMinInBackground(
+    channelId: "afterInBackground",
+    channelName: "afterInBackground",
+    channelDescription: "Test noticiations with After Minute In Background",
   );
 
   final String channelId;

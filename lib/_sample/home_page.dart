@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -5,7 +8,11 @@ import 'package:flutter_local_notifications_sample/_sample/_component/appbar_wid
 import 'package:flutter_local_notifications_sample/_sample/_component/snackbar_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/awesome_notifications/awesome_push_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_page.dart';
+import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,21 +21,46 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final FlutterLocalNotificationsPlugin local =
       FlutterLocalNotificationsPlugin();
+
+  final ValueNotifier<bool> _isAfterMinInBackground = ValueNotifier(false);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _permissionWithNotification();
+    tz.initializeTimeZones();
     _initWithLocalNotifications();
     _listenerWithLocalNotifications();
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
+    await _getAfterMinuteInBackground();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.inactive:
+        _afterMinuteInBackground();
+        break;
+      case AppLifecycleState.resumed:
+        _afterMinuteInBackgroundCancel();
+      default:
+        break;
+    }
   }
 
   void _permissionWithNotification() async {
@@ -74,6 +106,48 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _getAfterMinuteInBackground() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    bool? value = preferences.getBool("afterMinuteInBackgroundState");
+    _isAfterMinInBackground.value = value ?? false;
+  }
+
+  Future<void> _setAfterMinuteInBackground(bool value) async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setBool("afterMinuteInBackgroundState", value);
+  }
+
+  void _afterMinuteInBackgroundCancel() async => await local.cancel(999999);
+
+  void _afterMinuteInBackground() async {
+    if (_isAfterMinInBackground.value) {
+      await local.zonedSchedule(
+          999999,
+          "🚀 [AFTER] Minute In Background State",
+          "[TEST] flutter_local_notifications packages with Local Push\n(setting > noti)",
+          tz.TZDateTime.now(tz.local).add(const Duration(minutes: 1)),
+          NotificationDetails(
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              badgeNumber: 1,
+            ),
+            android: AndroidNotificationDetails(
+              PushType.afterMinInBackground.channelId,
+              PushType.afterMinInBackground.channelName,
+              channelDescription:
+                  PushType.afterMinInBackground.channelDescription,
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          payload: "tyger://flutterLocalNotifications/afterMinInBackground");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,6 +159,53 @@ class _HomePageState extends State<HomePage> {
         children: [
           _button("flutter_local_notifications", const LocalPushPage()),
           _button("awesome_notifications", const AwesomePushPage()),
+          Container(
+            margin: const EdgeInsets.only(top: 40, bottom: 24),
+            width: MediaQuery.of(context).size.width,
+            height: 4,
+            color: const Color.fromRGBO(96, 96, 96, 1),
+          ),
+          ValueListenableBuilder<bool>(
+              valueListenable: _isAfterMinInBackground,
+              builder: (context, value, child) {
+                return Container(
+                  color: Colors.transparent,
+                  height: 50,
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "After 1 Minute in Background",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromRGBO(215, 215, 215, 1),
+                        ),
+                      ),
+                      if (Platform.isIOS) ...[
+                        CupertinoSwitch(
+                          trackColor: const Color.fromRGBO(115, 115, 115, 1),
+                          value: value,
+                          onChanged: (bool v) async {
+                            HapticFeedback.mediumImpact();
+                            await _setAfterMinuteInBackground(v);
+                            _isAfterMinInBackground.value = v;
+                          },
+                        )
+                      ] else ...[
+                        Switch(
+                          value: value,
+                          onChanged: (bool v) async {
+                            HapticFeedback.mediumImpact();
+                            await _setAfterMinuteInBackground(v);
+                            _isAfterMinInBackground.value = v;
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }),
         ],
       ),
     );
