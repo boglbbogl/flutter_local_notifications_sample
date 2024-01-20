@@ -15,6 +15,7 @@ void snackbarWidget(BuildContext context, String type, String link) =>
                   fontSize: 12,
                   color: Color.fromRGBO(95, 95, 95, 1)),
             ),
+            //
             Text(
               link,
               style: const TextStyle(
