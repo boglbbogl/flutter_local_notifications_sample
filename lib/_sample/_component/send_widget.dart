@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
+import 'package:flutter_local_notifications_sample/_sample/send_model.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class SendWidget extends StatefulWidget {
   final PushType type;
-  final Function(String?, String?, String?) onTap;
+  final Function(SendModel) onTap;
   const SendWidget({
     super.key,
     required this.type,
@@ -16,21 +20,8 @@ class SendWidget extends StatefulWidget {
 }
 
 class _SendWidgetState extends State<SendWidget> {
-  final List<String> imageList = [
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/7718d102-ce66-400c-96a7-1aa125fe27a2",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/ab2f6cc0-b0cd-4f8d-aab5-478708b95de7",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/cf765bd8-98a1-4a0b-8350-0503ce80973d",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/8e9b93ba-5da4-4515-a328-0c304137028e",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/7728d053-9cbd-4f9f-ac57-b7ab4a2f0870",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/eb888572-32d7-4b7e-aff5-4a233292c45d",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/15162f40-f11b-427c-ac05-63fe1cba716a",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/bc1c33b4-6170-4ede-80ba-f083c1a13581",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/2b748179-f07b-4da2-9363-8d57910970c4",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/435e1d71-9c7d-4cc3-ae60-c078fa4026c4",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/c6babc0d-0cbe-47b7-8da6-99c06f476276",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/a64e3ead-0e95-4a37-83ef-7b493a4157c9",
-    "https://github.com/boglbbogl/flutter_velog_sample/assets/75574246/736f6441-6772-49a2-8e3e-35a26a5f641e",
-  ];
+  final List<String> assetImages =
+      List.generate(8, (i) => "assets/images/image_${i + 1}.jpg");
 
   late TextEditingController title;
   late TextEditingController body;
@@ -38,6 +29,7 @@ class _SendWidgetState extends State<SendWidget> {
   late TextEditingController imageUrl;
 
   ValueNotifier<int?> currentImage = ValueNotifier(null);
+  ValueNotifier<bool> isSubmit = ValueNotifier(false);
 
   @override
   void initState() {
@@ -45,132 +37,216 @@ class _SendWidgetState extends State<SendWidget> {
     title = TextEditingController();
     body = TextEditingController();
     deeplink = TextEditingController();
+    imageUrl = TextEditingController();
+  }
+
+  Future<String?> _networkImageToFilePath(String url) async {
+    try {
+      final http.Response response = await http.get(Uri.parse(url));
+      final Directory directory = await getTemporaryDirectory();
+      final String name = "${directory.path}/${url.split('/').last}.png";
+      final File file = File(name);
+      await file.writeAsBytes(response.bodyBytes);
+      return file.path;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> _assetToFilePath() async {
+    final String asset = assetImages[currentImage.value!];
+    final ByteData byteData = await rootBundle.load(asset);
+    final Directory directory = await getTemporaryDirectory();
+    final File file = File('${directory.path}/${asset.split('/').last}');
+    await file.writeAsBytes(byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    return file.path;
+  }
+
+  Future<String?> _imageToPath() async {
+    int type = currentImage.value != null
+        ? 1
+        : imageUrl.text.trim().isNotEmpty
+            ? 2
+            : 0;
+    return switch (type) {
+      1 => await _assetToFilePath(),
+      2 => await _networkImageToFilePath(imageUrl.text.trim()),
+      _ => null,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Container(
-        color: Colors.transparent,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height - kToolbarHeight,
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(
-                  top: 32, left: 12, right: 12, bottom: 24),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Notifications",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 20,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        widget.onTap(
-                          title.text.trim().isNotEmpty ? title.text : null,
-                          body.text.trim().isNotEmpty ? body.text : null,
-                          deeplink.text.trim().isNotEmpty
-                              ? deeplink.text.trim()
-                              : null,
-                        );
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        "SEND",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            _form("Title", title),
-            _form("Body", body),
-            _form("Deeplink", body),
-            _form("URL", body),
-            ValueListenableBuilder(
-                valueListenable: currentImage,
-                builder: (context, current, child) {
-                  return Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    height: (MediaQuery.of(context).size.width / 5),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 12),
-                          ...List.generate(
-                            imageList.length,
-                            (index) => GestureDetector(
-                              onTap: () {
-                                HapticFeedback.mediumImpact();
-                                if (currentImage.value == index) {
-                                  currentImage.value = null;
-                                } else {
-                                  currentImage.value = index;
-                                }
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 4),
-                                width: MediaQuery.of(context).size.width / 5,
-                                height: MediaQuery.of(context).size.width / 5,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: const Color.fromRGBO(235, 235, 235, 1),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Stack(
-                                    children: [
-                                      Image.network(
-                                        imageList[index],
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                5,
-                                        height:
-                                            MediaQuery.of(context).size.width /
-                                                5,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      if (current != null) ...[
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: current != index
-                                                ? Colors.white.withOpacity(0.8)
-                                                : null,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+    return ValueListenableBuilder(
+        valueListenable: isSubmit,
+        builder: (context, value, child) {
+          return GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: Container(
+              color: Colors.transparent,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height - kToolbarHeight,
+              child: Stack(
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(
+                            top: 32, left: 12, right: 12, bottom: 24),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Notifications",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 20,
                                 ),
                               ),
-                            ),
+                              GestureDetector(
+                                onTap: () async {
+                                  HapticFeedback.mediumImpact();
+                                  isSubmit.value = true;
+                                  String? filePath = await _imageToPath();
+                                  widget.onTap(
+                                    SendModel(
+                                      type: widget.type,
+                                      title: title.text.trim().isNotEmpty
+                                          ? title.text
+                                          : null,
+                                      body: body.text.trim().isNotEmpty
+                                          ? body.text
+                                          : null,
+                                      deeplink: deeplink.text.trim().isNotEmpty
+                                          ? deeplink.text.trim()
+                                          : null,
+                                      filePath: filePath,
+                                    ),
+                                  );
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop();
+                                },
+                                child: value
+                                    ? const SizedBox(
+                                        width: 28,
+                                        height: 28,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.red,
+                                        ),
+                                      )
+                                    : const Text(
+                                        "SEND",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 16,
+                                            color: Colors.red),
+                                      ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                        ],
+                        ),
                       ),
+                      _form("Title", title),
+                      _form("Body", body),
+                      _form("Deeplink", deeplink),
+                      _form("URL", imageUrl),
+                      ValueListenableBuilder(
+                          valueListenable: currentImage,
+                          builder: (context, current, child) {
+                            return Container(
+                              margin: const EdgeInsets.only(top: 12),
+                              height: (MediaQuery.of(context).size.width / 5),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 12),
+                                    ...List.generate(
+                                      assetImages.length,
+                                      (index) => GestureDetector(
+                                        onTap: () {
+                                          HapticFeedback.mediumImpact();
+                                          if (currentImage.value == index) {
+                                            currentImage.value = null;
+                                          } else {
+                                            currentImage.value = index;
+                                          }
+                                        },
+                                        child: Container(
+                                          margin:
+                                              const EdgeInsets.only(right: 4),
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              5,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              5,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: const Color.fromRGBO(
+                                                235, 235, 235, 1),
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Stack(
+                                              children: [
+                                                Image.asset(
+                                                  assetImages[index],
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      5,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      5,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                                if (current != null) ...[
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: current != index
+                                                          ? Colors.white
+                                                              .withOpacity(0.8)
+                                                          : null,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                    ],
+                  ),
+                  Visibility(
+                    visible: value,
+                    child: Container(
+                      color: Colors.transparent,
                     ),
-                  );
-                }),
-          ],
-        ),
-      ),
-    );
+                  )
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   Container _form(

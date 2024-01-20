@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/send_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
+import 'package:flutter_local_notifications_sample/_sample/send_model.dart';
 
 class ContentWidget extends StatelessWidget {
   final PushType type;
   final String content;
   final List<Widget> children;
-  final Function(String?, String?, String?) onTap;
+  final Function(SendModel) onTap;
   const ContentWidget({
     super.key,
     required this.type,
