@@ -71,6 +71,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
         presentSound: true,
         badgeNumber: 1,
         attachments: attachments,
+        subtitle: "123123123123",
+        categoryIdentifier: "test",
       ),
       android: AndroidNotificationDetails(
         send.type.channelId,

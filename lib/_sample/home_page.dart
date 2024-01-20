@@ -14,6 +14,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  // handle action
+  print(notificationResponse);
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -73,10 +79,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _initWithLocalNotifications() async {
     AndroidInitializationSettings android =
         const AndroidInitializationSettings("@mipmap/ic_launcher");
-    DarwinInitializationSettings ios = const DarwinInitializationSettings(
+    DarwinInitializationSettings ios = DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: false,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          "test",
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain("id_1", "action 1"),
+            DarwinNotificationAction.plain("id_2", "action 1"),
+            DarwinNotificationAction.plain("id_3", "action 1"),
+          ],
+          options: <DarwinNotificationCategoryOption>{
+            DarwinNotificationCategoryOption.hiddenPreviewShowSubtitle,
+          },
+        ),
+      ],
     );
 
     InitializationSettings settings =
@@ -89,6 +108,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               context, "[Foreground / Background]", details.payload!);
         }
       },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
   }
 
