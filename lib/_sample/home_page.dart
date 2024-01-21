@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +16,10 @@ import 'package:timezone/timezone.dart' as tz;
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
   // handle action
-  print(notificationResponse);
+  print(notificationResponse.actionId);
+  print(notificationResponse.id);
+  print(notificationResponse.input);
+  print(notificationResponse.payload);
 }
 
 class HomePage extends StatefulWidget {
@@ -85,11 +87,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       requestAlertPermission: false,
       notificationCategories: [
         DarwinNotificationCategory(
-          "test",
+          "categoryId",
           actions: <DarwinNotificationAction>[
-            DarwinNotificationAction.plain("id_1", "action 1"),
-            DarwinNotificationAction.plain("id_2", "action 1"),
-            DarwinNotificationAction.plain("id_3", "action 1"),
+            DarwinNotificationAction.text("categoryInput", "Input Text",
+                buttonTitle: "SEND", placeholder: "Input your text..."),
+            DarwinNotificationAction.plain("categoryAccept", "Accept"),
+            DarwinNotificationAction.plain("categoryDecline", "Decline"),
           ],
           options: <DarwinNotificationCategoryOption>{
             DarwinNotificationCategoryOption.hiddenPreviewShowSubtitle,
