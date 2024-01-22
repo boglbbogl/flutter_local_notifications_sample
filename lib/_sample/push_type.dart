@@ -4,6 +4,11 @@ enum PushType {
     channelName: "onlyOne",
     channelDescription: "Test notifictions with only one",
   ),
+  progressOnlyAndroid(
+    channelId: "progressOnlyAndroid",
+    channelName: "progressOnlyAndroid",
+    channelDescription: "Test notifications with Only progress",
+  ),
   period(
     channelId: "intervalPeriod",
     channelName: "intervalPeriod",

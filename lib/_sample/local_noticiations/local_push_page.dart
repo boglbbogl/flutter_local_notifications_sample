@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_list_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/send_model.dart';
@@ -54,7 +56,13 @@ class _LocalPushPageState extends State<LocalPushPage> {
     }
   }
 
-  NotificationDetails _setDetails(SendModel send) {
+  NotificationDetails _setDetails(
+    SendModel send, {
+    int maxProgress = 100,
+    int progress = 0,
+    bool showProgress = false,
+    bool silent = false,
+  }) {
     List<DarwinNotificationAttachment> attachments = [];
     StyleInformation? styleInformation;
     if (send.filePath != null) {
@@ -63,6 +71,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         FilePathAndroidBitmap(send.filePath!),
       );
     }
+
     return NotificationDetails(
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -78,6 +87,10 @@ class _LocalPushPageState extends State<LocalPushPage> {
         importance: Importance.max,
         priority: Priority.high,
         styleInformation: styleInformation,
+        maxProgress: maxProgress,
+        progress: progress,
+        showProgress: showProgress,
+        silent: silent,
       ),
     );
   }
@@ -139,7 +152,21 @@ class _LocalPushPageState extends State<LocalPushPage> {
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
     }
-    _setDate(DateTime.now());
+  }
+
+  Future<void> _showWithOnlyAndroidProgress({
+    required SendModel send,
+  }) async {
+    for (int i = 0; i < 10; i++) {
+      await Future.delayed(const Duration(seconds: 1), () async {
+        NotificationDetails details = _setDetails(send,
+            showProgress: true, progress: (i + 1) * 10, silent: true);
+        PushModel data =
+            await _setPayload(send, progress: "${(i + 1) * 10}/100");
+        await _local.show(data.id, data.title, data.body, details,
+            payload: data.deeplink);
+      });
+    }
   }
 
   tz.TZDateTime _setDate(DateTime date) {
@@ -170,6 +197,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
   Future<PushModel> _setPayload(
     SendModel send, {
     tz.TZDateTime? dateTime,
+    String? progress,
   }) async {
     List<PendingNotificationRequest> notifications =
         await _local.pendingNotificationRequests();
@@ -213,6 +241,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
             PushType.daily => "🌈 [DAILY] 매일 $date분 마다..",
             PushType.weekly => "💥 [WEEKLY] 매주 $week $date분 마다..",
             PushType.montly => "📅 [MONTLY] 매월 $date분 마다..",
+            PushType.progressOnlyAndroid => "🧨 [PROGRESS] [$progress]",
             _ => "",
           },
       body: send.body ??
@@ -224,6 +253,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
             PushType.daily => "tyger://flutterLocalNotifications/daily",
             PushType.weekly => "tyger://flutterLocalNotifications/weekly",
             PushType.montly => "tyger://flutterLocalNotifications/montly",
+            PushType.progressOnlyAndroid =>
+              "tyger://flutterLocalNotifications/progress",
             _ => "",
           },
     );
@@ -260,11 +291,19 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _button(Icons.remove, () => _onChanged(isAdd: false)),
                           _button(Icons.add, () => _onChanged()),
                         ],
-                        onTap: (SendModel send) => _show(
-                          send: send,
-                        ),
+                        onTap: (SendModel send) => _show(send: send),
                       );
                     }),
+                Visibility(
+                  visible: !Platform.isIOS,
+                  child: ContentWidget(
+                    type: PushType.progressOnlyAndroid,
+                    content: "Progress Only Android",
+                    children: const [],
+                    onTap: (SendModel send) =>
+                        _showWithOnlyAndroidProgress(send: send),
+                  ),
+                )
               ],
             ),
             TitleWidget(
@@ -280,9 +319,8 @@ class _LocalPushPageState extends State<LocalPushPage> {
                           _bigButton(
                               Icons.refresh, () async => _onChangedWithTime())
                         ],
-                        onTap: (SendModel send) => _periodicallyShow(
-                          send: send,
-                        ),
+                        onTap: (SendModel send) =>
+                            _periodicallyShow(send: send),
                       );
                     }),
                 ValueListenableBuilder<TimeOfDay>(
