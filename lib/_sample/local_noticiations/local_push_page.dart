@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_list_page.dart';
@@ -91,6 +92,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         progress: progress,
         showProgress: showProgress,
         silent: silent,
+        vibrationPattern: Int64List.fromList([0, 1500, 500, 2000, 500, 1500]),
       ),
     );
   }
@@ -198,11 +200,12 @@ class _LocalPushPageState extends State<LocalPushPage> {
     SendModel send, {
     tz.TZDateTime? dateTime,
     String? progress,
+    int? groupId,
   }) async {
     List<PendingNotificationRequest> notifications =
         await _local.pendingNotificationRequests();
-    int id =
-        notifications.isEmpty ? 0 : notifications.map((e) => e.id).last + 1;
+    int id = groupId ??
+        (notifications.isEmpty ? 0 : notifications.map((e) => e.id).last + 1);
     String one = oneTime.value == 0 ? "즉시" : "${oneTime.value}분 후..";
     DateTime now = DateTime.now();
 
