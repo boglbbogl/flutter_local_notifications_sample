@@ -275,7 +275,6 @@ class _LocalPushPageState extends State<LocalPushPage> {
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(26, 26, 26, 1),
         appBar: AppbarWidget(
-          title: "",
           isLeading: true,
           onAction: () async => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const LocalPushListPage())),
