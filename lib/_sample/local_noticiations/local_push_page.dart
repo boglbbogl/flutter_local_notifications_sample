@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_list_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/send_model.dart';
@@ -80,6 +79,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         presentSound: true,
         badgeNumber: 1,
         attachments: attachments,
+        sound: "slow_spring_board.aiff",
       ),
       android: AndroidNotificationDetails(
         send.type.channelId,
@@ -93,6 +93,7 @@ class _LocalPushPageState extends State<LocalPushPage> {
         showProgress: showProgress,
         silent: silent,
         vibrationPattern: Int64List.fromList([0, 1500, 500, 2000, 500, 1500]),
+        sound: const RawResourceAndroidNotificationSound("slow_spring_board"),
       ),
     );
   }
