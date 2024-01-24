@@ -79,7 +79,6 @@ class _LocalPushPageState extends State<LocalPushPage> {
         presentSound: true,
         badgeNumber: 1,
         attachments: attachments,
-        sound: "slow_spring_board.aiff",
       ),
       android: AndroidNotificationDetails(
         send.type.channelId,

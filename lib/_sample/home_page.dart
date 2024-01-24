@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/appbar_widget.dart';
 import 'package:flutter_local_notifications_sample/_sample/_component/snackbar_widget.dart';
-import 'package:flutter_local_notifications_sample/_sample/awesome_notifications/awesome_push_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/local_noticiations/local_push_page.dart';
 import 'package:flutter_local_notifications_sample/_sample/push_type.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -16,10 +15,6 @@ import 'package:timezone/timezone.dart' as tz;
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
   // handle action
-  print(notificationResponse.actionId);
-  print(notificationResponse.id);
-  print(notificationResponse.input);
-  print(notificationResponse.payload);
 }
 
 class HomePage extends StatefulWidget {
@@ -181,7 +176,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       body: Column(
         children: [
           _button("flutter_local_notifications", const LocalPushPage()),
-          _button("awesome_notifications", const AwesomePushPage()),
           Container(
             margin: const EdgeInsets.only(top: 40, bottom: 24),
             width: MediaQuery.of(context).size.width,
